@@ -25,12 +25,14 @@ NSString * const TYPE_VIDEO = @"VIDEO";
 NSString * const TYPE_AUDIO = @"AUDIO";
 NSString * const DEFAULT_IMAGE_SCALE = @"center";
 
+/*
 - (CDVPlugin*) initWithWebView:(UIWebView*)theWebView {
 	NSLog(@"-------------------------------------------------");
 	NSLog(@"INITWITHWEBVIEW");
 	self = (StreamingMedia*)[super initWithWebView:theWebView];
 	return self;
 }
+*/
 
 -(void)parseOptions:(NSDictionary *)options type:(NSString *) type {
 	// Common options
@@ -179,6 +181,8 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 	NSURL *url = [NSURL URLWithString:uri];
 
 	moviePlayer =  [[MPMoviePlayerController alloc] initWithContentURL:url];
+    moviePlayer.movieSourceType = MPMovieSourceTypeStreaming;
+    [moviePlayer.view setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 	// Listen for playback finishing
 	[[NSNotificationCenter defaultCenter] addObserver:self
@@ -204,8 +208,21 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
 		[moviePlayer.backgroundView addSubview:imageView];
 	}
 	moviePlayer.backgroundView.backgroundColor = backgroundColor;
+    [moviePlayer prepareToPlay];
 	[self.viewController.view addSubview:moviePlayer.view];
 
+    id views = @{ @"player": moviePlayer.view };
+    
+    [self.viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[player]|"
+                                                                                     options:0
+                                                                                     metrics:nil
+                                                                                       views:views]];
+    
+    [self.viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[player]|"
+                                                                                     options:0
+                                                                                     metrics:nil
+                                                                                       views:views]];
+    
 	// Note: animating does a fade to black, which may not match background color
     if (initFullscreen) {
         [moviePlayer setFullscreen:YES animated:NO];
